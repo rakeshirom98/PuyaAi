@@ -13,6 +13,13 @@
       "email": "t26947@x.com",
       "passwordHash": "68898e9d9def947983de5731f6bf49505ad7d1cd3fc965f08890a8eda52e2b4c",
       "createdAt": "2026-10-28T13:19:29.782Z"
+    },
+    {
+      "id": "6b85694b-180f-469e-9ba4-88bbf93ca70c",
+      "username": "rakesh",
+      "email": "rakeshirom06@gmail.com",
+      "passwordHash": "85fd313b4ac54e65a95a46f61888a6ca2375c1b6fd1229c086d7214a270982b2",
+      "createdAt": "2026-10-28T13:22:14.424Z"
     }
   ],
   "sessions": [
@@ -60,6 +67,11 @@
       "token": "700c01425813916aab40bcc66268afd7a839f06c54b04894",
       "userId": "e1bdc4d3-4ff2-43f7-ab18-b300ecbe6fee",
       "createdAt": "2026-10-28T13:19:50.308Z"
+    },
+    {
+      "token": "039e762bedf7c442cf6bdb99464149dffe2401a7b9d2f4ff",
+      "userId": "6b85694b-180f-469e-9ba4-88bbf93ca70c",
+      "createdAt": "2026-10-28T13:22:14.424Z"
     }
   ],
   "chats": []

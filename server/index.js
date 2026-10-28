@@ -12,9 +12,8 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3001;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID?.trim() || "";
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET?.trim() || "";
-const GOOGLE_REDIRECT_URI =
-  process.env.GOOGLE_REDIRECT_URI?.trim() || "http://localhost:3001/api/auth/google/callback";
-const APP_ORIGIN = process.env.APP_ORIGIN?.trim() || "http://localhost:5173";
+const GOOGLE_REDIRECT_URI_OVERRIDE = process.env.GOOGLE_REDIRECT_URI?.trim() || "";
+const APP_ORIGIN_OVERRIDE = process.env.APP_ORIGIN?.trim() || "";
 const DEFAULT_MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
 const AVAILABLE_MODELS = [
   "openai/gpt-oss-120b",
@@ -80,8 +79,24 @@ function readCookie(req, name) {
   return cookie ? cookie.trim().slice(name.length + 1) : "";
 }
 
-function authRedirect(params) {
-  const url = new URL("/", APP_ORIGIN);
+function firstHeaderValue(value) {
+  return String(Array.isArray(value) ? value[0] : value || "").split(",")[0].trim();
+}
+
+// The browser reaches this API through a proxy (Vite in dev, the host in prod), so the public
+// origin comes from the forwarded headers rather than this server's own localhost address.
+function requestOrigin(req) {
+  const host = firstHeaderValue(req.headers["x-forwarded-host"]) || req.headers.host;
+  const proto = firstHeaderValue(req.headers["x-forwarded-proto"]) || req.protocol || "http";
+  return `${proto}://${host}`;
+}
+
+function googleRedirectUri(req) {
+  return GOOGLE_REDIRECT_URI_OVERRIDE || `${requestOrigin(req)}/api/auth/google/callback`;
+}
+
+function authRedirect(req, params) {
+  const url = new URL("/", APP_ORIGIN_OVERRIDE || requestOrigin(req));
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.set(key, value);
   }
@@ -338,7 +353,7 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
-app.get("/api/auth/google", (_req, res) => {
+app.get("/api/auth/google", (req, res) => {
   if (!googleAuthConfigured()) {
     return res.status(503).json({
       error: "Google sign-in is not configured. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to the API server's .env file.",
@@ -354,7 +369,7 @@ app.get("/api/auth/google", (_req, res) => {
   const googleUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   googleUrl.search = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
-    redirect_uri: GOOGLE_REDIRECT_URI,
+    redirect_uri: googleRedirectUri(req),
     response_type: "code",
     scope: "openid email profile",
     state,
@@ -371,11 +386,11 @@ app.get("/api/auth/google/callback", async (req, res) => {
   const stateCookie = readCookie(req, GOOGLE_STATE_COOKIE);
   const stateQuery = typeof req.query.state === "string" ? req.query.state : "";
   if (!stateCookie || !stateQuery || stateCookie !== stateQuery) {
-    return res.redirect(authRedirect({ google_auth_error: "failed" }));
+    return res.redirect(authRedirect(req, { google_auth_error: "failed" }));
   }
 
   if (!googleAuthConfigured() || typeof req.query.code !== "string" || req.query.error) {
-    return res.redirect(authRedirect({ google_auth_error: "failed" }));
+    return res.redirect(authRedirect(req, { google_auth_error: "failed" }));
   }
 
   try {
@@ -386,14 +401,14 @@ app.get("/api/auth/google/callback", async (req, res) => {
         code: req.query.code,
         client_id: GOOGLE_CLIENT_ID,
         client_secret: GOOGLE_CLIENT_SECRET,
-        redirect_uri: GOOGLE_REDIRECT_URI,
+        redirect_uri: googleRedirectUri(req),
         grant_type: "authorization_code",
       }),
       signal: AbortSignal.timeout(10000),
     });
     const tokenData = await tokenResponse.json().catch(() => ({}));
     if (!tokenResponse.ok || typeof tokenData.access_token !== "string") {
-      return res.redirect(authRedirect({ google_auth_error: "failed" }));
+      return res.redirect(authRedirect(req, { google_auth_error: "failed" }));
     }
 
     const profileResponse = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
@@ -403,19 +418,19 @@ app.get("/api/auth/google/callback", async (req, res) => {
     const profile = await profileResponse.json().catch(() => ({}));
     const email = typeof profile.email === "string" ? profile.email.trim().toLowerCase() : "";
     if (!profileResponse.ok || !profile.sub || !email || profile.email_verified !== true) {
-      return res.redirect(authRedirect({ google_auth_error: "failed" }));
+      return res.redirect(authRedirect(req, { google_auth_error: "failed" }));
     }
 
     const store = await readStore();
     const googleUser = store.users.find((user) => user.googleId === profile.sub);
     const emailUser = store.users.find((user) => String(user.email || "").toLowerCase() === email);
     if (googleUser && emailUser && googleUser.id !== emailUser.id) {
-      return res.redirect(authRedirect({ google_auth_error: "failed" }));
+      return res.redirect(authRedirect(req, { google_auth_error: "failed" }));
     }
 
     let user = googleUser || emailUser;
     if (user?.googleId && user.googleId !== profile.sub) {
-      return res.redirect(authRedirect({ google_auth_error: "failed" }));
+      return res.redirect(authRedirect(req, { google_auth_error: "failed" }));
     }
     if (!user) {
       user = {
@@ -440,10 +455,10 @@ app.get("/api/auth/google/callback", async (req, res) => {
       userId: user.id,
       expiresAt: now + 5 * 60 * 1000,
     });
-    return res.redirect(authRedirect({ google_auth_code: exchangeCode }));
+    return res.redirect(authRedirect(req, { google_auth_code: exchangeCode }));
   } catch (error) {
     console.error("Google sign-in failed:", error.message);
-    return res.redirect(authRedirect({ google_auth_error: "failed" }));
+    return res.redirect(authRedirect(req, { google_auth_error: "failed" }));
   }
 });
 

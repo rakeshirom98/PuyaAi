@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently -k \"npm run server\" \"npm run client\"",
+    "dev": "concurrently -n api,web -c blue,magenta \"npm run server\" \"npm run client\"",
     "client": "vite",
     "server": "node server/index.js",
     "start": "npm run dev",

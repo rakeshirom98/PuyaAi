@@ -841,6 +841,18 @@ app.post("/api/chat/stream", requireAuth, async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, (error) => {
+  // Express 5 passes listen errors (e.g. EADDRINUSE) here instead of throwing,
+  // so without this check the process silently exits with code 0.
+  if (error) {
+    if (error.code === "EADDRINUSE") {
+      console.error(
+        `Puya Ai API: port ${PORT} is already in use. Another API instance is probably running — stop it or set PORT.`,
+      );
+    } else {
+      console.error("Puya Ai API failed to start:", error);
+    }
+    process.exit(1);
+  }
   console.log(`Puya Ai API: http://localhost:${PORT}`);
 });

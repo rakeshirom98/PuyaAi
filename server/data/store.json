@@ -1,0 +1,44 @@
+{
+  "users": [
+    {
+      "id": "88bcf7cd-e3a6-4d17-9376-7f76aa999e4b",
+      "username": "rakesh irom",
+      "email": "iromrakesh7@gmail.com",
+      "passwordHash": "85fd313b4ac54e65a95a46f61888a6ca2375c1b6fd1229c086d7214a270982b2",
+      "createdAt": "2026-10-27T18:23:49.375Z"
+    }
+  ],
+  "sessions": [
+    {
+      "token": "63c33f3d9cfed372887a1e40fe71fb1c123c0d16ba5df64e",
+      "userId": "88bcf7cd-e3a6-4d17-9376-7f76aa999e4b",
+      "createdAt": "2026-10-27T18:23:49.376Z"
+    },
+    {
+      "token": "5f8b2dee5394fc8227abeea4fca4f6e8865d3bf36fa08821",
+      "userId": "88bcf7cd-e3a6-4d17-9376-7f76aa999e4b",
+      "createdAt": "2026-10-27T20:03:05.748Z"
+    },
+    {
+      "token": "68c2c04b70a716c339cec1c1f35f6394c89fdc00335adb2a",
+      "userId": "88bcf7cd-e3a6-4d17-9376-7f76aa999e4b",
+      "createdAt": "2026-10-28T09:35:51.127Z"
+    },
+    {
+      "token": "2b64b6859cb0a508721b91832d1119ca551e69ba9d579d86",
+      "userId": "88bcf7cd-e3a6-4d17-9376-7f76aa999e4b",
+      "createdAt": "2026-10-28T09:52:21.789Z"
+    },
+    {
+      "token": "dd7fb7f3fa70f7f48b2728db2adb8cd8b0b2452a402ecd1f",
+      "userId": "88bcf7cd-e3a6-4d17-9376-7f76aa999e4b",
+      "createdAt": "2026-10-28T11:53:46.961Z"
+    },
+    {
+      "token": "0d12f35178ed4b05a5a7551367c2c855d88eec5591f33c15",
+      "userId": "88bcf7cd-e3a6-4d17-9376-7f76aa999e4b",
+      "createdAt": "2026-10-28T11:57:14.812Z"
+    }
+  ],
+  "chats": []
+}

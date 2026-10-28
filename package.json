@@ -4,9 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently -k \"npm run server\" \"npm run client\"",
+    "client": "vite",
     "server": "node server/index.js",
-    "start": "concurrently -k \"npm run server\" \"npm run dev\"",
+    "start": "npm run dev",
     "build": "vite build",
     "preview": "vite preview"
   },

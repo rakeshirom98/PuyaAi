@@ -6,7 +6,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 
-dotenv.config();
+dotenv.config({ path: [".env.development.local", ".env"], quiet: true });
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
